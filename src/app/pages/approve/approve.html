@@ -1,0 +1,50 @@
+<section class="card center">
+  @switch (state()) {
+    @case ('loading') { <p class="muted">Loading…</p> }
+
+    @case ('error') {
+      <div class="icon bad">!</div>
+      <h1>Can't continue</h1>
+      <p class="muted">{{ message() }}</p>
+    }
+
+    @case ('approved') {
+      <div class="icon ok">✓</div>
+      <h1>Desktop signed in</h1>
+      <p class="muted">You can close this page and continue on your computer.</p>
+    }
+
+    @case ('rejected') {
+      <div class="icon bad">✕</div>
+      <h1>Login rejected</h1>
+      <p class="muted">The desktop was not signed in.</p>
+    }
+
+    @default {
+      @if (info(); as i) {
+        <h1>Sign in on another device?</h1>
+        <p class="muted">You are signed in to Keycloak as</p>
+        <div class="user-chip">
+          <div class="avatar">{{ i.user.name.charAt(0) }}</div>
+          <div>
+            <strong>{{ i.user.name }}</strong>
+            <div class="muted small">{{ i.user.email ?? i.user.username }}</div>
+          </div>
+        </div>
+
+        <dl class="kv small">
+          <dt>Device</dt>
+          <dd>{{ i.desktop.userAgent ?? 'Unknown' }}</dd>
+          <dt>IP</dt>
+          <dd>{{ i.desktop.ip ?? 'Unknown' }}</dd>
+        </dl>
+        <p class="muted small">Only approve if you just scanned this QR code yourself.</p>
+
+        <div class="actions">
+          <button class="btn secondary" [disabled]="state() === 'busy'" (click)="decide('reject')">Reject</button>
+          <button class="btn" [disabled]="state() === 'busy'" (click)="decide('approve')">Approve</button>
+        </div>
+      }
+    }
+  }
+</section>

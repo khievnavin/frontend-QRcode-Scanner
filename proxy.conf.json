@@ -1,0 +1,27 @@
+{
+  "/api": {
+    "target": "http://localhost:3000",
+    "secure": false,
+    "xfwd": true
+  },
+  "/realms": {
+    "target": "http://localhost:8888",
+    "secure": false,
+    "xfwd": true
+  },
+  "/resources": {
+    "target": "http://localhost:8888",
+    "secure": false,
+    "xfwd": true
+  },
+  "/admin": {
+    "target": "http://localhost:8888",
+    "secure": false,
+    "xfwd": true
+  },
+  "/js": {
+    "target": "http://localhost:8888",
+    "secure": false,
+    "xfwd": true
+  }
+}

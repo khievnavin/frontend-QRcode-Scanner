@@ -1,0 +1,51 @@
+<section class="card center">
+  <h1>Sign in with your phone</h1>
+  <p class="muted">Scan the QR code with your phone camera and sign in with Keycloak.</p>
+
+  <div class="qr-box" [class.dimmed]="status() !== 'pending'">
+    @if (session(); as s) {
+      <img [src]="s.qrDataUrl" alt="Login QR code" width="280" height="280" />
+    } @else {
+      <div class="qr-placeholder">@if (status() === 'loading') { Loading… }</div>
+    }
+
+    @if (isFinal()) {
+      <div class="qr-overlay">
+        <p>
+          @switch (status()) {
+            @case ('expired') { QR code expired }
+            @case ('rejected') { Login was rejected on the phone }
+            @default { Cannot reach the backend }
+          }
+        </p>
+        @if (status() === 'error') {
+          <p class="muted small">Tried {{ apiUrl }}/qr/session</p>
+        }
+        <p class="muted small">A new QR code will appear automatically…</p>
+      </div>
+    }
+  </div>
+
+  <div class="status">
+    @switch (status()) {
+      @case ('pending') {
+        <span class="dot"></span> Waiting for scan · expires in {{ secondsLeft() }}s
+      }
+      @case ('scanned') {
+        <span class="dot busy"></span> Scanned — signing in on the phone…
+      }
+      @case ('awaiting_approval') {
+        <span class="dot busy"></span> Confirm the login on your phone
+        @if (user(); as u) { <strong>({{ u.name }})</strong> }
+      }
+      @case ('approved') { <span class="dot ok"></span> Approved — signing you in… }
+    }
+  </div>
+
+  @if (session(); as s) {
+    <details class="muted small">
+      <summary>No phone? Open the QR link in another browser</summary>
+      <a [href]="s.scanUrl" target="_blank" rel="noopener">{{ s.scanUrl }}</a>
+    </details>
+  }
+</section>
