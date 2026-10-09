@@ -1,3 +1,5 @@
+/* Theme: light by default. Dark when the user picks "dark" (data-theme on <html>),
+   or when they keep "system" and the OS is dark. See core/theme.service.ts */
 :root {
   --bg: #f4f6fb;
   --card: #fff;
@@ -9,10 +11,22 @@
   --ok: #1fa463;
   --bad: #e5484d;
   --code-bg: #f1f3f8;
-  color-scheme: light dark;
+  --hero-bg: linear-gradient(135deg, #3d5afe, #6d48f0);
+  color-scheme: light;
+}
+:root[data-theme='dark'] {
+  --bg: #11141c;
+  --card: #1a1f2b;
+  --text: #e8ebf2;
+  --muted: #9aa3b5;
+  --border: #2b3242;
+  --primary: #6c83ff;
+  --code-bg: #12161f;
+  --hero-bg: linear-gradient(135deg, #3a4aa8, #4c2a8f);
+  color-scheme: dark;
 }
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --bg: #11141c;
     --card: #1a1f2b;
     --text: #e8ebf2;
@@ -20,6 +34,8 @@
     --border: #2b3242;
     --primary: #6c83ff;
     --code-bg: #12161f;
+    --hero-bg: linear-gradient(135deg, #3a4aa8, #4c2a8f);
+    color-scheme: dark;
   }
 }
 * { box-sizing: border-box; }
@@ -76,3 +92,6 @@ details { margin-top: 20px; word-break: break-all; }
 .icon.bad { background: var(--bad); }
 .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
 pre { background: var(--code-bg); padding: 12px; border-radius: 10px; overflow-x: auto; font-size: 0.8rem; }
+
+/* Theme switch: fixed top-right, except where a page places it itself (/home top bar) */
+.theme-corner { position: fixed; top: 12px; right: 12px; z-index: 10; }

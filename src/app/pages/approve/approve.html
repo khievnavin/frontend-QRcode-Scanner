@@ -38,6 +38,9 @@
           <dt>IP</dt>
           <dd>{{ i.desktop.ip ?? 'Unknown' }}</dd>
         </dl>
+        <p class="muted small">
+          Not {{ i.user.name }}? <a [href]="switchAccountUrl()">Sign in as someone else</a>
+        </p>
         <p class="muted small">Only approve if you just scanned this QR code yourself.</p>
 
         <div class="actions">

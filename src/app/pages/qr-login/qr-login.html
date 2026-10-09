@@ -1,6 +1,7 @@
 <section class="card center">
   <h1>Sign in with your phone</h1>
   <p class="muted">Scan the QR code with your phone camera and sign in with Keycloak.</p>
+  <p class="muted small">Your phone signs in once - next time you only tap Approve.</p>
 
   <div class="qr-box" [class.dimmed]="status() !== 'pending'">
     @if (session(); as s) {
@@ -42,10 +43,10 @@
     }
   </div>
 
-  @if (session(); as s) {
+  <!-- @if (session(); as s) {
     <details class="muted small">
       <summary>No phone? Open the QR link in another browser</summary>
       <a [href]="s.scanUrl" target="_blank" rel="noopener">{{ s.scanUrl }}</a>
     </details>
-  }
+  } -->
 </section>

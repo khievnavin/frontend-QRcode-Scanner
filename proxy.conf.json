@@ -7,21 +7,17 @@
   "/realms": {
     "target": "http://localhost:8888",
     "secure": false,
-    "xfwd": true
+    "xfwd": false,
+    "headers": {
+      "X-Forwarded-Proto": "https"
+    }
   },
   "/resources": {
     "target": "http://localhost:8888",
     "secure": false,
-    "xfwd": true
-  },
-  "/admin": {
-    "target": "http://localhost:8888",
-    "secure": false,
-    "xfwd": true
-  },
-  "/js": {
-    "target": "http://localhost:8888",
-    "secure": false,
-    "xfwd": true
+    "xfwd": false,
+    "headers": {
+      "X-Forwarded-Proto": "https"
+    }
   }
 }

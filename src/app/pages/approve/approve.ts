@@ -53,6 +53,12 @@ export class Approve implements OnInit {
     }
   }
 
+  /** Restarts the login with the Keycloak form, so a different user can sign in on this phone. */
+  protected switchAccountUrl() {
+    const qs = new URLSearchParams({ switch: '1', t: this.t() ?? '' });
+    return `${API_URL}/qr/scan/${this.sid()}?${qs}`;
+  }
+
   private fail(message: string) {
     this.message.set(message);
     this.state.set('error');

@@ -1,20 +1,169 @@
-<section class="card">
-  <header class="row">
-    <div class="user-chip">
-      <div class="avatar">{{ user()?.name?.charAt(0) }}</div>
-      <div>
-        <strong>Welcome, {{ user()?.name }}</strong>
-        <div class="muted small">{{ user()?.email }}</div>
-      </div>
-    </div>
-    <button class="btn secondary" (click)="logout()">Log out</button>
-  </header>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo">▣</span>
+    <span>POC SSO</span>
+  </div>
+  <div class="who">
+    <app-theme-toggle />
+    <div class="avatar sm">{{ initials() }}</div>
+    <span class="who-name">{{ displayName() }}</span>
+    <button class="btn secondary sm" (click)="logout()">Log out</button>
+  </div>
+</header>
 
-  <p>You signed in by scanning a QR code with your phone — the session is a real Keycloak SSO session.</p>
-
-  <h2>Protected API <code>GET /api/me</code></h2>
-  <pre>{{ (me() ?? 'Loading…') | json }}</pre>
-
-  <h2>Access token claims</h2>
-  <pre>{{ claims() | json }}</pre>
+<section class="hero">
+  <div class="avatar lg">{{ initials() }}</div>
+  <div>
+    <h1>{{ greeting() }}, {{ profile()?.given_name ?? displayName() }}</h1>
+    <p class="muted">
+      Signed in with your phone {{ ago(claims()?.auth_time) }}
+      @if (currentSession(); as s) { · from {{ s.ipAddress }} }
+    </p>
+  </div>
 </section>
+
+@if (loadError()) {
+  <div class="alert">
+    {{ loadError() }}
+    <button class="btn secondary sm" (click)="load()">Retry</button>
+  </div>
+}
+
+<div class="grid">
+  <!-- Profile (Keycloak userinfo) -->
+  <article class="panel">
+    <h2>Profile</h2>
+    @if (profile(); as p) {
+      <dl class="rows">
+        <dt>Full name</dt>
+        <dd>{{ p.name ?? '—' }}</dd>
+        <dt>Username</dt>
+        <dd>{{ p.preferred_username }}</dd>
+        <dt>Email</dt>
+        <dd>
+          {{ p.email ?? '—' }}
+          @if (p.email_verified) {
+            <span class="badge ok">Verified</span>
+          } @else if (p.email) {
+            <span class="badge warn">Not verified</span>
+          }
+        </dd>
+        <dt>User ID</dt>
+        <dd class="id">
+          <code>{{ p.sub }}</code>
+          <button class="icon-btn" (click)="copy(p.sub)" [attr.aria-label]="'Copy user ID'">
+            {{ copied() ? '✓' : '⧉' }}
+          </button>
+        </dd>
+      </dl>
+    } @else {
+      <div class="skeleton"></div>
+    }
+    <p class="source">from Keycloak <code>/userinfo</code></p>
+  </article>
+
+  <!-- This session (token claims + account session) -->
+  <article class="panel">
+    <h2>This session</h2>
+    @if (claims(); as c) {
+      <dl class="rows">
+        <dt>Signed in</dt>
+        <dd>{{ (c.auth_time ?? c.iat) * 1000 | date: 'medium' }}</dd>
+        <dt>Access token</dt>
+        <dd>
+          <div class="meter" [class.low]="tokenSecondsLeft() < 60">
+            <div [style.width.%]="tokenProgress()"></div>
+          </div>
+          <span class="small muted">expires in {{ countdown(tokenSecondsLeft()) }} · auto-refreshed</span>
+        </dd>
+        @if (currentSession(); as s) {
+          <dt>Phone remembered</dt>
+          <dd>until {{ s.expires * 1000 | date: 'mediumDate' }} <span class="small muted">({{ ago(s.expires) }})</span></dd>
+        }
+        <dt>Client</dt>
+        <dd><code>{{ c.azp }}</code></dd>
+        <dt>Scopes</dt>
+        <dd class="chips">
+          @for (s of scopes(); track s) { <span class="chip">{{ s }}</span> }
+        </dd>
+      </dl>
+    }
+    <p class="source">from the access token + Keycloak Account API</p>
+  </article>
+
+  <!-- Roles -->
+  <article class="panel">
+    <h2>Roles</h2>
+    <h3>Realm</h3>
+    <div class="chips">
+      @for (r of realmRoles(); track r) { <span class="chip role">{{ r }}</span> }
+      @empty { <span class="muted small">No realm roles</span> }
+    </div>
+    @for (cr of clientRoles(); track cr.client) {
+      <h3>{{ cr.client }}</h3>
+      <div class="chips">
+        @for (r of cr.roles; track r) { <span class="chip">{{ r }}</span> }
+      </div>
+    }
+    <p class="source">from the access token (<code>realm_access</code>, <code>resource_access</code>)</p>
+  </article>
+
+  <!-- Devices / sessions (Keycloak Account API) -->
+  <article class="panel wide">
+    <div class="panel-head">
+      <h2>Signed-in phones</h2>
+      <button class="btn secondary sm" (click)="load()">Refresh</button>
+    </div>
+    <p class="muted small">
+      Each sign-in on a phone stays remembered, so the next QR scan needs no password. Sign out a phone you don't
+      recognise or have lost.
+    </p>
+    @if (overview()) {
+      <ul class="sessions">
+        @for (s of sessions(); track s.id) {
+          <li [class.current]="s.current">
+            <div class="device-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8">
+                <rect x="6" y="2" width="12" height="20" rx="2.5" /><path d="M11 18h2" />
+              </svg>
+            </div>
+            <div class="session-main">
+              <div class="session-title">
+                {{ s.device || 'Unknown browser' }}
+                @if (s.current) { <span class="badge ok">This sign-in</span> }
+              </div>
+              <div class="small muted">
+                {{ s.ipAddress }} · signed in {{ ago(s.started) }} · active {{ ago(s.lastAccess) }}
+                @if (s.desktops) { · approved a desktop }
+              </div>
+              <div class="small muted">remembered until {{ s.expires * 1000 | date: 'mediumDate' }}</div>
+            </div>
+            <button class="btn secondary sm danger" [disabled]="busySession() === s.id" (click)="signOut(s)">
+              {{ busySession() === s.id ? 'Signing out…' : 'Sign out' }}
+            </button>
+          </li>
+        } @empty {
+          <li class="muted">No active sessions.</li>
+        }
+      </ul>
+    } @else {
+      <div class="skeleton"></div>
+    }
+    <p class="source">from Keycloak <code>/account/sessions/devices</code></p>
+  </article>
+
+  <!-- Developer details -->
+  <article class="panel wide">
+    <details>
+      <summary><h2>Developer details</h2></summary>
+      <h3>Backend check <code>GET /api/me/overview</code></h3>
+      <p class="small">
+        @if (overview(); as o) {
+          <span class="badge ok">Token verified by NestJS</span> at {{ o.serverTime | date: 'mediumTime' }}
+        }
+      </p>
+      <h3>Access token claims</h3>
+      <pre>{{ claims() | json }}</pre>
+    </details>
+  </article>
+</div>

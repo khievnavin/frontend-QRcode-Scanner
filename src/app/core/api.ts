@@ -40,3 +40,43 @@ export interface ApprovalInfo {
   desktop: { ip?: string; userAgent?: string };
   expiresAt: number;
 }
+
+/** OIDC userinfo, as returned by Keycloak. */
+export interface UserProfile {
+  sub: string;
+  preferred_username?: string;
+  name?: string;
+  given_name?: string;
+  family_name?: string;
+  email?: string;
+  email_verified?: boolean;
+}
+
+export interface AccountSession {
+  id: string;
+  ipAddress: string;
+  /** epoch seconds */
+  started: number;
+  lastAccess: number;
+  expires: number;
+  browser: string;
+  current?: boolean;
+  clients: { clientId: string; clientName?: string }[];
+}
+
+/** Keycloak Account API: a device and its sessions. */
+export interface AccountDevice {
+  os: string;
+  osVersion: string;
+  device: string;
+  lastAccess: number;
+  current: boolean;
+  sessions: AccountSession[];
+}
+
+export interface MeOverview {
+  user: User;
+  profile: UserProfile;
+  devices: AccountDevice[];
+  serverTime: string;
+}

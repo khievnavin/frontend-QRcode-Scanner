@@ -33,7 +33,6 @@ export class QrLogin implements OnInit {
   private pollTimer?: ReturnType<typeof setInterval>;
   private retryTimer?: ReturnType<typeof setTimeout>;
   private polling = false;
-  /** A new QR is due but the tab is hidden - generate it once the user comes back. */
   private regenerateWhenVisible = false;
 
   constructor() {
